@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tasksapp.data.remote.ApiService
 import com.example.tasksapp.data.remote.dto.LoginRequest
+import com.example.tasksapp.data.repository.DataStoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,24 +13,17 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 
-data class LoginUiState(
-    val email: String = "",
-    val password: String = "",
-    val isLoading: Boolean = false,
-    val isLoggedIn: Boolean = false,
-    val message: String = ""
-)
-
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val dataStore: DataStoreRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    fun onUsernameChange(username: String) {
-        _uiState.value = _uiState.value.copy(email = username)
+    fun onEmailChange(email: String) {
+        _uiState.value = _uiState.value.copy(email = email)
     }
 
     fun onPasswordChange(password: String) {
@@ -41,7 +35,9 @@ class LoginViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                val response = apiService.login(LoginRequest(_uiState.value.email, _uiState.value.password))
+                val response =
+                    apiService.login(LoginRequest(_uiState.value.email, _uiState.value.password))
+                    dataStore.saveJwt(response.token)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     isLoggedIn = true,
@@ -64,4 +60,11 @@ class LoginViewModel @Inject constructor(
     }
 }
 
+data class LoginUiState(
+    val email: String = "",
+    val password: String = "",
+    val isLoading: Boolean = false,
+    val isLoggedIn: Boolean = false,
+    val message: String = ""
+)
 

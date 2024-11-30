@@ -1,4 +1,4 @@
-package com.example.tasksapp.ui.theme
+package com.example.tasksapp.presenter.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary = primaryColor,
     secondary = PurpleGrey80,
     tertiary = Pink80
 )
