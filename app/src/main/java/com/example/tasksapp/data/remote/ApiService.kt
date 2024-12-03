@@ -21,6 +21,6 @@ interface ApiService {
     suspend fun getTasks(@Header("Authorization") token: String): List<TaskDto>
 
     companion object {
-        const val BASE_URL = "http://192.168.138.155:3000"
+        const val BASE_URL = "http://192.168.241.155:3000"
     }
 }
