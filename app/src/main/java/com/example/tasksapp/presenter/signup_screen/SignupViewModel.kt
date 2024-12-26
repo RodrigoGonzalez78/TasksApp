@@ -38,8 +38,35 @@ class SignupViewModel @Inject constructor(
     fun onPasswordChange(newPassword: String) {
         _uiState.update { it.copy(password = newPassword) }
     }
+
     fun onConfirmPasswordChange(newConfirmPassword: String) {
         _uiState.update { it.copy(confirmPassword = newConfirmPassword) }
+    }
+
+    fun validateAndRegister() {
+        val currentState = _uiState.value
+        val errors = SignupUiState(
+            nameError = if (currentState.name.isBlank()) "El nombre no puede estar vacío" else "",
+            lastNameError = if (currentState.lastName.isBlank()) "El apellido no puede estar vacío" else "",
+            emailError = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(currentState.email)
+                    .matches()
+            ) "Formato de email inválido" else "",
+            passwordError = if (currentState.password.length < 8) "La contraseña debe tener al menos 8 caracteres" else "",
+            confirmPasswordError = if (currentState.password != currentState.confirmPassword) "Las contraseñas no coinciden" else ""
+        )
+        _uiState.update {
+            it.copy(
+                nameError = errors.nameError,
+                lastNameError = errors.lastNameError,
+                emailError = errors.lastNameError,
+                passwordError = errors.passwordError,
+                confirmPasswordError = errors.confirmPasswordError
+            )
+        }
+
+        if (errors.hasErrors()) return
+
+        register()
     }
 
     fun register() {
@@ -60,7 +87,7 @@ class SignupViewModel @Inject constructor(
                     email = _uiState.value.email,
                     password = _uiState.value.password
                 )
-               val response= apiService.signUp(user)
+                apiService.signUp(user)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -81,7 +108,6 @@ class SignupViewModel @Inject constructor(
     }
 }
 
-
 data class SignupUiState(
     val email: String = "",
     val name: String = "",
@@ -90,5 +116,13 @@ data class SignupUiState(
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
-    val message: String = ""
-)
+    val message: String = "",
+    val nameError: String = "",
+    val lastNameError: String = "",
+    val emailError: String = "",
+    val passwordError: String = "",
+    val confirmPasswordError: String = ""
+) {
+    fun hasErrors() =
+        nameError.isNotEmpty() || lastNameError.isNotEmpty() || emailError.isNotEmpty() || passwordError.isNotEmpty() || confirmPasswordError.isNotEmpty()
+}

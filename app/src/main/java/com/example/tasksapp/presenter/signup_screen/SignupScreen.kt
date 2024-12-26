@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,7 +20,6 @@ import androidx.navigation.NavController
 
 @Composable
 fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hiltViewModel()) {
-
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val primaryColor = Color(0xFFFF5722)
@@ -32,17 +32,16 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Registro",
                 color = primaryColor,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
             )
-
-
 
             Spacer(modifier = Modifier.height(15.dp))
 
@@ -56,10 +55,20 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.nameError.isNotEmpty()
             )
+            if (uiState.nameError.isNotEmpty()) {
+                Text(
+                    text = uiState.nameError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall,
+
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
+
 
             OutlinedTextField(
                 value = uiState.lastName,
@@ -70,12 +79,19 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.lastNameError.isNotEmpty()
             )
-
-
+            if (uiState.lastNameError.isNotEmpty()) {
+                Text(
+                    text = uiState.lastNameError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
+
 
             OutlinedTextField(
                 value = uiState.email,
@@ -86,25 +102,43 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.emailError.isNotEmpty()
             )
+            if (uiState.emailError.isNotEmpty()) {
+                Text(
+                    text = uiState.emailError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
+
 
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = { viewModel.onPasswordChange(it) },
                 label = { Text("Contraseña") },
                 modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.passwordError.isNotEmpty()
             )
-
+            if (uiState.passwordError.isNotEmpty()) {
+                Text(
+                    text = uiState.passwordError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
+
 
             OutlinedTextField(
                 value = uiState.confirmPassword,
@@ -116,25 +150,28 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.confirmPasswordError.isNotEmpty()
             )
+            if (uiState.confirmPasswordError.isNotEmpty()) {
+                Text(
+                    text = uiState.confirmPasswordError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
+
             Button(
-                onClick = { viewModel.register() },
+                onClick = { viewModel.validateAndRegister() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = primaryColor
                 ),
-                shape = RoundedCornerShape(12.dp),
-                enabled = uiState.name.isNotEmpty() &&
-                        uiState.lastName.isNotEmpty() &&
-                        uiState.email.isNotEmpty() &&
-                        uiState.password.isNotEmpty() &&
-                        uiState.confirmPassword.isNotEmpty() &&
-                        !uiState.isLoading
+                shape = RoundedCornerShape(12.dp)
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
@@ -143,26 +180,6 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                     )
                 } else {
                     Text("Registrarse")
-                }
-            }
-
-            TextButton(
-
-                onClick = {
-                    navController.navigate("login") {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
-            ) {
-                Text(
-                    text = "Ya tienes una cuenta?",
-                    color = Color.Black.copy(alpha = 0.8f)
-                )
-            }
-
-            LaunchedEffect(uiState.isLoggedIn) {
-                if (uiState.message.isNotEmpty()) {
-                    Toast.makeText(context, uiState.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
