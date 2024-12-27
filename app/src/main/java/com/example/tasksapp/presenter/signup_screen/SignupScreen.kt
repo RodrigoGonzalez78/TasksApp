@@ -8,11 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -64,7 +62,7 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.labelSmall,
 
-                )
+                    )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -181,7 +179,35 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                 } else {
                     Text("Registrarse")
                 }
+
+
+            }
+
+            TextButton(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+
+                onClick = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            ) {
+                Text(
+                    text = "Ya tienes una cuenta?",
+                    color = Color.Black.copy(alpha = 0.8f)
+                )
+            }
+
+
+
+        }
+
+        LaunchedEffect(uiState.message) {
+            if (uiState.notification) {
+                Toast.makeText(context, uiState.message, Toast.LENGTH_LONG).show()
+                viewModel.changeNotification(false)
             }
         }
+
     }
 }

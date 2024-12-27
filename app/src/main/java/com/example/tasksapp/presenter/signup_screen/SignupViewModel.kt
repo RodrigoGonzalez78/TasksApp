@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tasksapp.data.remote.ApiService
 import com.example.tasksapp.data.remote.dto.UserDto
-import com.example.tasksapp.presenter.login_screen.LoginUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +21,18 @@ class SignupViewModel @Inject constructor(
     val uiState: StateFlow<SignupUiState> = _uiState.asStateFlow()
 
 
+    private fun clearFields(){
+        this.onNameChange("")
+        this.onLastNameChange("")
+        this.onEmailChange("")
+        this.onPasswordChange("")
+        this.onConfirmPasswordChange("")
+    }
+    
+    fun changeNotification( state:Boolean){
+        _uiState.update { it.copy(notification = state) }
+    }
+    
     fun onNameChange(newName: String) {
         _uiState.update { it.copy(name = newName) }
     }
@@ -58,7 +68,7 @@ class SignupViewModel @Inject constructor(
             it.copy(
                 nameError = errors.nameError,
                 lastNameError = errors.lastNameError,
-                emailError = errors.lastNameError,
+                emailError = errors.emailError,
                 passwordError = errors.passwordError,
                 confirmPasswordError = errors.confirmPasswordError
             )
@@ -69,7 +79,7 @@ class SignupViewModel @Inject constructor(
         register()
     }
 
-    fun register() {
+    private fun register() {
         viewModelScope.launch {
             val currentState = _uiState.value
 
@@ -81,25 +91,32 @@ class SignupViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, message = "") }
 
             try {
+
                 val user = UserDto(
                     firstName = _uiState.value.name,
                     lastName = _uiState.value.lastName,
                     email = _uiState.value.email,
                     password = _uiState.value.password
                 )
+
                 apiService.signUp(user)
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        isLoggedIn = true,
+                        notification = true,
                         message = "Registro exitoso"
                     )
                 }
+
+                clearFields()
+
             } catch (e: Exception) {
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
+                        notification = true,
                         message = "Error en el registro: ${e.message}"
                     )
                 }
@@ -115,7 +132,7 @@ data class SignupUiState(
     val password: String = "",
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
-    val isLoggedIn: Boolean = false,
+    val notification: Boolean = false,
     val message: String = "",
     val nameError: String = "",
     val lastNameError: String = "",

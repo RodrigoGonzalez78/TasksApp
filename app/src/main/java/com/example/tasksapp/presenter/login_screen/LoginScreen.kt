@@ -3,18 +3,13 @@ package com.example.tasksapp.presenter.login_screen
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,14 +28,15 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Inicia Sesión",
                 color = primaryColor,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
             )
             Spacer(modifier = Modifier.height(15.dp))
 
@@ -53,8 +49,17 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.emailError.isNotEmpty()
             )
+
+            if (uiState.emailError.isNotEmpty()) {
+                Text(
+                    text = uiState.emailError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -66,12 +71,20 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = primaryColor,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+                ),
+                isError = uiState.passwordError.isNotEmpty()
             )
+            if (uiState.passwordError.isNotEmpty()) {
+                Text(
+                    text = uiState.passwordError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = viewModel::onLoginClick,
+                onClick = viewModel::validateFields,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -87,12 +100,12 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Inicia sesión")
+                    Text("Iniciar sesión")
                 }
             }
 
             TextButton(
-
+                modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
                 onClick = {
                     navController.navigate("signup") {
                         popUpTo(0) { inclusive = true }
@@ -109,8 +122,9 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
 
 
         LaunchedEffect(uiState.message) {
-            if (uiState.message.isNotEmpty()) {
+            if (uiState.notification) {
                 Toast.makeText(context, uiState.message, Toast.LENGTH_LONG).show()
+                viewModel.changeNotificationState(false)
             }
         }
     }
