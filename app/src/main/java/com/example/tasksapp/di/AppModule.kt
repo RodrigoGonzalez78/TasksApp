@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.tasksapp.data.remote.ApiService
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import javax.inject.Singleton
 
-// Extensión para inicializar DataStore
+
 val Context.dataStore by preferencesDataStore(name = "user_preferences")
 
 @Module
@@ -24,9 +26,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRetrofit(): ApiService {
+        val gson: Gson = GsonBuilder().create()
         return Retrofit.Builder()
             .baseUrl(ApiService.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create()
     }

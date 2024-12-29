@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tasksapp.presenter.home_screen.HomeScreen
 import com.example.tasksapp.presenter.login_screen.LoginScreen
+import com.example.tasksapp.presenter.new_task_screen.NewTaskScreen
 import com.example.tasksapp.presenter.signup_screen.SignupScreen
 import com.example.tasksapp.presenter.splash_screen.SplashScreen
 
@@ -33,8 +34,9 @@ fun AppNavHost(navController: NavHostController = rememberNavController(),viewMo
 
     NavHost(navController = navController, startDestination = "splash") {
         composable("splash") { SplashScreen() }
-        composable("home") { HomeScreen() }
+        composable("home") { HomeScreen(navController) }
         composable("signup") { SignupScreen(navController) }
         composable("login") { LoginScreen(navController) }
+        composable("new_task") { NewTaskScreen(navController) }
     }
 }

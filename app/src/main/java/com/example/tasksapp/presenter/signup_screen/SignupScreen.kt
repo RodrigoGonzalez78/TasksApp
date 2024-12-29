@@ -180,7 +180,6 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                     Text("Registrarse")
                 }
 
-
             }
 
             TextButton(
@@ -197,9 +196,6 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                     color = Color.Black.copy(alpha = 0.8f)
                 )
             }
-
-
-
         }
 
         LaunchedEffect(uiState.message) {

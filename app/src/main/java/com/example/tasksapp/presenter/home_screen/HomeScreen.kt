@@ -29,17 +29,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.tasksapp.presenter.login_screen.LoginViewModel
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
-    val primaryColor = Color(0xFFFF5722) // Color naranja/rojo del diseño anterior
-    var tasks by remember { mutableStateOf(listOf("Tarea 1", "Tarea 2", "Tarea 3")) }
-    var isDrawerOpen by remember { mutableStateOf(false) }
+fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val primaryColor = Color(0xFFFF5722)
+
+    val tasks by viewModel.tasks.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllTasks()
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -54,29 +63,30 @@ fun HomeScreen() {
                 )
 
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                    label = { Text("Editar cuenta") },
+                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
+                    label = { Text("Mi cuenta") },
                     selected = false,
-                    onClick = { /* Manejar clic en Editar cuenta */ }
+                    onClick = { }
                 )
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) },
-                    label = { Text("Cerrar sesión") },
+                    icon = { Icon(Icons.Default.Clear, contentDescription = null) },
+                    label = { Text("Cerrar Sesion") },
                     selected = false,
-                    onClick = { /* Manejar clic en Cerrar sesión */ }
+                    onClick = { viewModel.closeSession() }
                 )
+
             }
         },
         content = {
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        title = { Text("Lista de Tareas") },
+                    CenterAlignedTopAppBar(
+                        title = { Text("Home") },
                         navigationIcon = {
                             IconButton(onClick = {
                                 scope.launch { drawerState.open() }
                             }) {
-                                Icon(Icons.Filled.Menu, contentDescription = "Menú")
+                                Icon(Icons.Filled.AccountCircle, contentDescription = "Menú")
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -89,7 +99,7 @@ fun HomeScreen() {
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = {
-                            tasks = tasks + "Nueva Tarea ${tasks.size + 1}"
+                            navController.navigate("new_task")
                         },
                         containerColor = primaryColor,
                         contentColor = Color.White
@@ -98,65 +108,29 @@ fun HomeScreen() {
                     }
                 }
             ) { innerPadding ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                ) {
-                    items(tasks) { task ->
-                        TaskItem(
-                            task = task,
-                            onDelete = { tasks = tasks - task }
-                        )
+
+                if (error != null) {
+                    Text("Error")
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
+                        items(tasks) { task ->
+                            TaskCard(
+                                title = task.title,
+                                description = task.description,
+                                isCompleted = task.done ?: false,
+                                onDelete = { task.id?.let { viewModel.deleteTask(it) } },
+                                onEdit = {},
+                                onToggleComplete = {}
+                            )
+                        }
                     }
                 }
+
             }
         }
     )
-}
-
-@Composable
-fun TaskItem(task: String, onDelete: () -> Unit) {
-    var isChecked by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { isChecked = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFFFF5722),
-                        uncheckedColor = Color.Gray
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = task,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (isChecked) Color.Gray else Color.Black
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Filled.Delete,
-                    contentDescription = "Eliminar tarea",
-                    tint = Color.Red
-                )
-            }
-        }
-    }
 }
