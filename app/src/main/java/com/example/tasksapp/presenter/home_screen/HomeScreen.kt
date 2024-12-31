@@ -1,5 +1,6 @@
 package com.example.tasksapp.presenter.home_screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,16 +23,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.tasksapp.R
 import com.example.tasksapp.presenter.login_screen.LoginViewModel
+import com.example.tasksapp.presenter.navigation.taskScreenRoute
 import kotlinx.coroutines.launch
 
 
@@ -64,9 +70,21 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
-                    label = { Text("Mi cuenta") },
+                    label = { Text("Actualisar Datos") },
                     selected = false,
                     onClick = { }
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Refresh, contentDescription = null) },
+                    label = { Text("Actualisar Contraseña") },
+                    selected = false,
+                    onClick = { }
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                    label = { Text("Borrar mi cuenta") },
+                    selected = false,
+                    onClick = { viewModel.deleteAccount() }
                 )
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Clear, contentDescription = null) },
@@ -81,7 +99,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             Scaffold(
                 topBar = {
                     CenterAlignedTopAppBar(
-                        title = { Text("Home") },
+                        title = { Text("Inicio") },
                         navigationIcon = {
                             IconButton(onClick = {
                                 scope.launch { drawerState.open() }
@@ -99,7 +117,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = {
-                            navController.navigate("new_task")
+                            navController.navigate("task_screen")
                         },
                         containerColor = primaryColor,
                         contentColor = Color.White
@@ -119,12 +137,20 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     ) {
                         items(tasks) { task ->
                             TaskCard(
-                                title = task.title,
-                                description = task.description,
+                                title = task.title ?: "",
+                                description = task.description ?: "",
                                 isCompleted = task.done ?: false,
                                 onDelete = { task.id?.let { viewModel.deleteTask(it) } },
-                                onEdit = {},
-                                onToggleComplete = {}
+                                onEdit = {navController.navigate(taskScreenRoute(taskId = task.id.toString()))},
+                                onToggleComplete = {
+                                    task.id?.let {
+                                        task.done?.let { it1 ->
+                                            viewModel.taskDone(
+                                                it1.not(), it
+                                            )
+                                        }
+                                    }
+                                }
                             )
                         }
                     }

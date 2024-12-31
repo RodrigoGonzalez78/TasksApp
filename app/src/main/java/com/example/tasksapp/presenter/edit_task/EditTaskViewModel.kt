@@ -1,34 +1,36 @@
-package com.example.tasksapp.presenter.login_screen
+package com.example.tasksapp.presenter.edit_task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tasksapp.data.remote.ApiService
-import com.example.tasksapp.data.remote.dto.UserDto
+import com.example.tasksapp.data.remote.dto.TaskDto
 import com.example.tasksapp.data.repository.DataStoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
+class EditTaskViewModel @Inject constructor(
     private val apiService: ApiService,
     private val dataStore: DataStoreRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(NewTaskUiState())
+    val uiState: StateFlow<NewTaskUiState> = _uiState.asStateFlow()
 
-    fun onEmailChange(email: String) {
-        _uiState.update { it.copy(email = email) }
+
+    fun onTitleChange(title: String) {
+        _uiState.update { it.copy(title = title) }
     }
 
-    fun onPasswordChange(password: String) {
-        _uiState.update { it.copy(password = password) }
+    fun onDescriptionChange(description: String) {
+        _uiState.update { it.copy(description = description) }
 
     }
 
@@ -38,67 +40,66 @@ class LoginViewModel @Inject constructor(
 
     fun validateFields() {
         val currentState = _uiState.value
-        val errors = LoginUiState(
-            emailError = if (currentState.email == "") "Complete el campo por favor" else "",
-            passwordError = if (currentState.password == "") "Complete el campo por favor" else ""
+        val errors = NewTaskUiState(
+            titleError = if (currentState.title == "") "Complete el campo por favor" else "",
+            descriptionError = if (currentState.description == "") "Complete el campo por favor" else ""
         )
         _uiState.update {
             it.copy(
-                emailError = errors.emailError,
-                passwordError = errors.passwordError
+                titleError = errors.titleError,
+                descriptionError = errors.descriptionError
             )
         }
 
         if (errors.hasErrors()) return
-
-        loginClick()
+        createTasks()
     }
 
-    private fun loginClick() {
+    private fun createTasks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-
             try {
-                val response = apiService.login(
-                    UserDto(
-                        email = _uiState.value.email,
-                        password = _uiState.value.password,
+
+                apiService.createTask(
+                    "Bearer " + dataStore.getJwt().first().toString(),
+                    TaskDto(
+                        title = _uiState.value.title,
+                        description = _uiState.value.description,
                     )
                 )
 
-                dataStore.saveJwt(response.token)
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     notification = true,
-                    message = "Inicio de sesión exitoso."
+                    message = "Tarea Creada"
                 )
             } catch (e: HttpException) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     notification = true,
-                    message = "Error de inicio de sesión"
+                    message = "Error al crear la tarea"
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     notification = true,
-                    message = "Error de inicio de sesión"
+                    message = "rror al crear la tarea"
                 )
             }
         }
     }
 }
 
-data class LoginUiState(
-    val email: String = "",
-    val password: String = "",
-    val passwordError: String = "",
-    val emailError: String = "",
-    val isLoading: Boolean = false,
+data class NewTaskUiState(
+    val title: String = "",
+    val description: String = "",
+    val titleError: String = "",
+    val descriptionError: String = "",
     val notification: Boolean = false,
+    val isLoading: Boolean = false,
     val message: String = ""
-) {
-    fun hasErrors() = this.passwordError.isNotEmpty() || this.emailError.isNotEmpty()
-}
 
+) {
+    fun hasErrors() = this.titleError.isNotEmpty() || this.descriptionError.isNotEmpty()
+}

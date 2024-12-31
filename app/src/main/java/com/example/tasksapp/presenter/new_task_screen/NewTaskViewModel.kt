@@ -5,8 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.tasksapp.data.remote.ApiService
 import com.example.tasksapp.data.remote.dto.TaskDto
 import com.example.tasksapp.data.repository.DataStoreRepository
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,25 +23,51 @@ class NewTaskViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NewTaskUiState())
     val uiState: StateFlow<NewTaskUiState> = _uiState.asStateFlow()
 
-
     fun onTitleChange(title: String) {
         _uiState.update { it.copy(title = title) }
     }
 
     fun onDescriptionChange(description: String) {
         _uiState.update { it.copy(description = description) }
-
     }
 
     fun changeNotificationState(newState: Boolean) {
         _uiState.update { it.copy(notification = newState) }
     }
 
+    fun loadTask(id: String) {
+        viewModelScope.launch {
+            try {
+
+
+
+                val task = apiService.getTask(
+                    "Bearer " + dataStore.getJwt().first(),
+                    id.toInt()
+                )
+                _uiState.update {
+                    it.copy(
+                        id = id,
+                        title = task.title?:"",
+                        description = task.description?:""
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        notification = true,
+                        message = "Error al cargar la tarea"
+                    )
+                }
+            }
+        }
+    }
+
     fun validateFields() {
         val currentState = _uiState.value
         val errors = NewTaskUiState(
-            titleError = if (currentState.title == "") "Complete el campo por favor" else "",
-            descriptionError = if (currentState.description == "") "Complete el campo por favor" else ""
+            titleError = if (currentState.title.isBlank()) "Complete el campo por favor" else "",
+            descriptionError = if (currentState.description.isBlank()) "Complete el campo por favor" else ""
         )
         _uiState.update {
             it.copy(
@@ -54,52 +77,46 @@ class NewTaskViewModel @Inject constructor(
         }
 
         if (errors.hasErrors()) return
-        createTasks()
+        saveTask()
     }
 
-    private fun createTasks() {
+    private fun saveTask() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
             try {
+                val jwt = "Bearer " + dataStore.getJwt().first()
+                if (_uiState.value.id == null) {
 
-               apiService.createTask(
-                   "Bearer "+ dataStore.getJwt().first().toString(),
-                    TaskDto(
-                        title = _uiState.value.title,
-                        description = _uiState.value.description,
-                        id = null,
-                        done = null,
-                        userId = null,
-                        createdAt = null,
-                        updatedAt = null,
-                        deletedAt = null
+                    apiService.createTask(
+                        jwt,
+                        TaskDto(
+                            title = _uiState.value.title,
+                            description = _uiState.value.description
+                        )
                     )
-                )
-
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    notification = true,
-                    message = "Exito"
-                )
-            } catch (e: HttpException) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    notification = true,
-                    message = "Error"
-                )
+                    _uiState.update { it.copy(message = "Tarea creada") }
+                } else {
+                    apiService.updateTask(
+                        jwt,
+                        _uiState.value.id!!.toInt(),
+                        TaskDto(
+                            title = _uiState.value.title,
+                            description = _uiState.value.description
+                        )
+                    )
+                    _uiState.update { it.copy(message = "Tarea actualizada") }
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    notification = true,
-                    message = "Error de inicio de sesión"
-                )
+                _uiState.update { it.copy(message = "Error al guardar la tarea") }
+            } finally {
+                _uiState.update { it.copy(isLoading = false, notification = true) }
             }
         }
     }
 }
 
 data class NewTaskUiState(
+    val id: String? = null,
     val title: String = "",
     val description: String = "",
     val titleError: String = "",
@@ -107,7 +124,6 @@ data class NewTaskUiState(
     val notification: Boolean = false,
     val isLoading: Boolean = false,
     val message: String = ""
-
 ) {
-    fun hasErrors() = this.titleError.isNotEmpty() || this.descriptionError.isNotEmpty()
+    fun hasErrors() = titleError.isNotEmpty() || descriptionError.isNotEmpty()
 }
