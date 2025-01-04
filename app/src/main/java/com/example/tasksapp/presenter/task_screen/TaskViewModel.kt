@@ -1,4 +1,4 @@
-package com.example.tasksapp.presenter.new_task_screen
+package com.example.tasksapp.presenter.task_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NewTaskViewModel @Inject constructor(
+class TaskScreenViewModel @Inject constructor(
     private val apiService: ApiService,
     private val dataStore: DataStoreRepository
 ) : ViewModel() {
@@ -38,8 +38,6 @@ class NewTaskViewModel @Inject constructor(
     fun loadTask(id: String) {
         viewModelScope.launch {
             try {
-
-
 
                 val task = apiService.getTask(
                     "Bearer " + dataStore.getJwt().first(),
@@ -113,6 +111,8 @@ class NewTaskViewModel @Inject constructor(
             }
         }
     }
+
+
 }
 
 data class NewTaskUiState(
