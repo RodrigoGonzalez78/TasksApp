@@ -90,8 +90,7 @@ fun UpdatePasswordScreen(navController: NavController, viewModel: UpdatePassword
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
+                horizontalAlignment = Alignment.Start
             ) {
 
                 OutlinedTextField(
@@ -100,6 +99,7 @@ fun UpdatePasswordScreen(navController: NavController, viewModel: UpdatePassword
                     label = { Text(" Nueva Contraseña") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
+                    visualTransformation = PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = primaryColor,
                         unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)

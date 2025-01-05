@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -42,7 +43,14 @@ class UpdatePasswordViewModel @Inject constructor(
 
         val errors = UpdatePasswordUiState(
             passwordError = if (currentState.password == "") "Complete el campo por favor" else "",
-            confirmPasswordError = if (currentState.confirmPassword == "") "Complete el campo por favor" else ""
+            confirmPasswordError = if (currentState.confirmPassword == "") {
+                "Complete el campo por favor"
+            } else if (currentState.confirmPassword != currentState.password) {
+                "No coincide con las contraseña"
+            } else {
+                ""
+            }
+
         )
 
         _uiState.update {
@@ -54,39 +62,37 @@ class UpdatePasswordViewModel @Inject constructor(
 
         if (errors.hasErrors()) return
 
-        loginClick()
+        updatePasswordClick()
     }
 
-    private fun loginClick() {
+    private fun updatePasswordClick() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                val response = apiService.login(
+                apiService.updatePassword(
+                    "Bearer " + dataStore.getJwt().first().toString(),
                     UserDto(
-                        email = _uiState.value.password,
-                        password = _uiState.value.confirmPassword,
+                        password = _uiState.value.password,
                     )
                 )
-
-                dataStore.saveJwt(response.token)
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     notification = true,
-                    message = "Inicio de sesión exitoso."
+                    message = "Se cambio la contraseña de manera exitosa"
                 )
             } catch (e: HttpException) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     notification = true,
-                    message = "Error de inicio de sesión"
+                    message = "Error al cambiar la contraseña"
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     notification = true,
-                    message = "Error de inicio de sesión"
+                    message = "Error al cambiar la contraseña"
                 )
             }
         }

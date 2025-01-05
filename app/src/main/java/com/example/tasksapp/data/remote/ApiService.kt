@@ -60,6 +60,6 @@ interface ApiService {
     ): ResponseBody
 
     companion object {
-        const val BASE_URL = "http://192.168.194.237:3000"
+        const val BASE_URL = "http://192.168.91.237:3000"
     }
 }

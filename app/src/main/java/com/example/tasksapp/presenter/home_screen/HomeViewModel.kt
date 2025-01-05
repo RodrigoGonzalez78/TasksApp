@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tasksapp.data.remote.ApiService
 import com.example.tasksapp.data.remote.dto.TaskDto
+import com.example.tasksapp.data.remote.dto.UserDto
 import com.example.tasksapp.data.repository.DataStoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,9 @@ class HomeViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _userData = MutableStateFlow (UserDto())
+    val userData: StateFlow<UserDto> get() = _userData
+
     fun closeSession() {
         viewModelScope.launch {
             dataStore.deleteJwt()
@@ -37,7 +41,6 @@ class HomeViewModel @Inject constructor(
             try {
                 val taskDtos =
                     apiService.getTasks("Bearer " + dataStore.getJwt().first().toString())
-                // val taskModels = taskDtos.map { it.toDomainModel() } // Convertir DTOs a modelos
                 _tasks.value = taskDtos
             } catch (e: Exception) {
                 _error.value = e.message
@@ -90,7 +93,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun showDataUser() {
+    fun getDataUser() {
+        viewModelScope.launch {
+            try {
+               _userData.value= apiService.getUserData("Bearer " + dataStore.getJwt().first().toString())
 
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
     }
 }

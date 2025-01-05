@@ -36,12 +36,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 
     val tasks by viewModel.tasks.collectAsState()
     val error by viewModel.error.collectAsState()
+    val userData by viewModel.userData.collectAsState()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.getAllTasks()
+        viewModel.getDataUser()
     }
 
     ModalNavigationDrawer(
@@ -50,23 +52,23 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             ModalDrawerSheet {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Menú",
-                    modifier = Modifier.padding(16.dp),
+                    (userData.firstName?:"")+" "+(userData.lastName?:""),
+                    modifier = Modifier.padding(start = 16.dp, bottom = 8.dp , top = 16.dp),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
-
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
-                    label = { Text("Actualisar Datos") },
-                    selected = false,
-                    onClick = { }
+                Text(
+                    userData.email ?:"",
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(start = 16.dp, bottom = 16.dp),
                 )
+
+                HorizontalDivider(thickness = 2.dp)
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Refresh, contentDescription = null) },
                     label = { Text("Actualisar Contraseña") },
                     selected = false,
-                    onClick = { }
+                    onClick = { navController.navigate(Screen.UpdatePassword.route)}
                 )
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.Delete, contentDescription = null) },
