@@ -18,6 +18,5 @@ Se debe tambien habilitar tambien en network_security_config.xml, reeplazando la
 
 ![Captura3](/images/4.png)
 
-![Captura4](/images/5.png)
 
 ![Captura5](/images/6.png)
