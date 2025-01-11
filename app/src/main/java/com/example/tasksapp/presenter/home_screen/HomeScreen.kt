@@ -127,19 +127,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     ) {
                         items(tasks) { task ->
                             TaskCard(
-                                title = task.title ?: "",
-                                description = task.description ?: "",
-                                isCompleted = task.done ?: false,
-                                onDelete = { task.id?.let { viewModel.deleteTask(it) } },
+                                title = task.title ,
+                                description = task.description ,
+                                isCompleted = task.done ,
+                                onDelete = { viewModel.deleteTask(task.id)  },
                                 onEdit = {navController.navigate(Screen.Task.createRoute(taskId = task.id.toString()))},
                                 onToggleComplete = {
-                                    task.id?.let {
-                                        task.done?.let { it1 ->
-                                            viewModel.taskDone(
-                                                it1.not(), it
-                                            )
-                                        }
-                                    }
+                                    viewModel.taskDone(task.done.not(), task.id
+                                    )
                                 }
                             )
                         }

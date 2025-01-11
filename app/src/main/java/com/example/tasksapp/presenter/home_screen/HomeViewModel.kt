@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.tasksapp.data.remote.ApiService
 import com.example.tasksapp.data.remote.dto.TaskDto
 import com.example.tasksapp.data.remote.dto.UserDto
+import com.example.tasksapp.data.remote.dto.toTaskList
 import com.example.tasksapp.data.repository.DataStoreRepository
+import com.example.tasksapp.domain.models.Task
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +23,8 @@ class HomeViewModel @Inject constructor(
     private val dataStore: DataStoreRepository
 ) : ViewModel() {
 
-    private val _tasks = MutableStateFlow<List<TaskDto>>(emptyList())
-    val tasks: StateFlow<List<TaskDto>> = _tasks.asStateFlow()
+    private val _tasks = MutableStateFlow<List<Task>>(emptyList())
+    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -41,7 +43,7 @@ class HomeViewModel @Inject constructor(
             try {
                 val taskDtos =
                     apiService.getTasks("Bearer " + dataStore.getJwt().first().toString())
-                _tasks.value = taskDtos
+                _tasks.value = taskDtos.toTaskList()
             } catch (e: Exception) {
                 _error.value = e.message
             }

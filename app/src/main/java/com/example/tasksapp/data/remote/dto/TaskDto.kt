@@ -1,5 +1,6 @@
 package com.example.tasksapp.data.remote.dto
 
+import com.example.tasksapp.domain.models.Task
 import com.google.gson.annotations.SerializedName
 
 data class TaskDto(
@@ -14,3 +15,15 @@ data class TaskDto(
 )
 
 
+fun TaskDto.toTask(): Task {
+    return Task(
+        id = this.id ?: 0,
+        title = this.title ?: "Sin título",
+        description = this.description ?: "Sin descripción",
+        done = this.done ?: false
+    )
+}
+
+fun List<TaskDto>.toTaskList(): List<Task> {
+    return this.map { it.toTask() }
+}
