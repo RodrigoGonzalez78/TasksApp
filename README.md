@@ -1,7 +1,7 @@
 # Aplicacion para la gestion de tareas
 
 La aplicacion permite la gestion de tareas de manera simple, tambien cuenta con la gestion de la cuenta del usuario desde su creacion y eliminacion,como la autenticacion.
-Los conceptos que se implementaron fue Clean Architecture, Dependency Injection, Retrofit, Data Store.
+Los conceptos que se implementaron fue Dependency Injection, Retrofit, Data Store.
 
 [Repositorio del Backend](https://github.com/RodrigoGonzalez78/tasks_management_backend)
 
